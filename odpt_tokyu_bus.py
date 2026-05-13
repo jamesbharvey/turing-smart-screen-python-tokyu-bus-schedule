@@ -3,6 +3,7 @@ import hashlib
 import json
 import pathlib
 import time
+import jpholiday
 import requests
 
 API_BASE = "https://api.odpt.org/api/v4"
@@ -80,9 +81,13 @@ def direction_label(direction_ids):
     return ", ".join(d.split(".")[-1] for d in direction_ids)
 
 
-def current_calendar():
-    """Return 'Weekday' or 'Saturday/Sunday/Holiday' based on today's date."""
-    return "Weekday" if datetime.date.today().weekday() < 5 else "Saturday/Sunday/Holiday"
+def current_calendar(date=None):
+    """Return 'Weekday' or 'Saturday/Sunday/Holiday' based on the given date (default: today)."""
+    if date is None:
+        date = datetime.date.today()
+    if date.weekday() >= 5 or jpholiday.is_holiday(date):
+        return "Saturday/Sunday/Holiday"
+    return "Weekday"
 
 
 def upcoming_departures(departures, now, window_minutes=60):

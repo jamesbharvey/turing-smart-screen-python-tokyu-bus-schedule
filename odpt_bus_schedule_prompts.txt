@@ -1,0 +1,47 @@
+ODPT Bus Schedule Conversation — Claude User Prompts
+==============================================
+Date: 2026-05-12 / 2026-05-13
+
+1. using the open data api for bus tokyu bus stop timetables described at
+   https://ckan.odpt.org/dataset/tokyu_bus__b-busstop_timetable, create python
+   code to fetch the bus stop timetable information for the Tamagawaonshitsumura
+   bus stop.
+
+2. and use consumerKey=XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+3. Tokyu bus runs the same schedule for Saturdays/Sundays/Holidays. Update the
+   script for Tamagawaonshitsumura to reflect this.
+
+4. Alter the script to by default only display the bus departures that are within
+   the next hour by default. Add a --full command line option to get a printout
+   of the full schedule.
+
+5. copy the script just made and change the copy to perform the same functionality
+   for the Futakotamagawaeki bus stop for route 11
+
+6. save a record of this odpt bus schedule related conversation to a text file.
+
+7. save all the prompts used in this odpt bus schedule related conversation to a
+   text file.
+
+8. refactor both scripts to cache the json responses from odpt on disk and only
+   refresh them when they are 24 hours or more old.
+
+9. refactor both scripts to include the current time clearly labeled at the top
+   of their output table.
+
+10. save all the prompts used in this odpt bus schedule related conversation to a
+    text file.
+
+11. make a copy of tamagawaonshitsumura_timetable.py and refactor/rename it to be
+    used as a python library
+
+12. do the suggested migration
+
+13. refactor both python scripts to get the CONSUMER_KEY from a .env file
+
+14. save all the prompts used in this odpt bus schedule related conversation to a
+    text file.
+
+15. use the jpholiday python package to make the scripts return correct schedule data
+    on japanese holidays.
