@@ -20,16 +20,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from time import sleep
 
-# This file is a simple Python test program using the library code to display custom content on screen (see README)
+from dotenv import load_dotenv
 
 from library.pythoncheck import check_python_version
+
+# This file is a simple Python test program using the library code to display custom content on screen (see README)
 check_python_version()
 
-import os
 import signal
-import sys
 import time
-from datetime import datetime
+import datetime
+import os
+import sys
+
 
 # Import only the modules for LCD communication
 from library.lcd.lcd_comm_rev_a import LcdCommRevA, Orientation
@@ -40,6 +43,22 @@ from library.lcd.lcd_comm_weact_a import LcdCommWeActA
 from library.lcd.lcd_comm_weact_b import LcdCommWeActB
 from library.lcd.lcd_simulated import LcdSimulated
 from library.log import logger
+
+from odpt_tokyu_bus import (
+    build_timetables,
+    current_calendar,
+    direction_label,
+    upcoming_departures,
+)
+
+load_dotenv()
+CONSUMER_KEY = os.environ.get("ODPT_CONSUMER_KEY")
+if not CONSUMER_KEY:
+    sys.exit("Error: ODPT_CONSUMER_KEY not set in environment or .env file")
+
+STOP_NAME = "Tamagawaonshitsumura"
+
+timetables = build_timetables(CONSUMER_KEY, STOP_NAME)
 
 # Set your COM port e.g. COM3 for Windows, /dev/ttyACM0 for Linux, etc. or "AUTO" for auto-discovery
 # COM_PORT = "/dev/ttyACM0"
@@ -141,21 +160,41 @@ if __name__ == "__main__":
     bar_value = 0
     while not stop:
         start = time.perf_counter()
-        lcd_comm.DisplayText(str(datetime.now().time().strftime("%H:%M")), 240, 2,
+        lcd_comm.DisplayText(str(datetime.datetime.now().time().strftime("%H:%M")), 240, 2,
                              font="res/fonts/roboto/Roboto-Bold.ttf",
                              font_size=30,
                              font_color=(255, 255, 0),
                              align="right",
                              background_image=background)
 
-        lcd_comm.DisplayText("二子玉川\n 15:04, 15:23", 5, 85,
-                             font="res/fonts/ZenOldMincho/ZenOldMincho-Medium.ttf",
-                             font_size=50,
-                             font_color=(255, 255, 255),
-                             background_image=background
-                             )
 
-        lcd_comm.DisplayText("多摩川\n 15:14, 15:33", 5, 230,
+
+        for timetable in timetables.values():
+            now = datetime.datetime.now()
+            dest = ""
+            calendar = timetable.get("odpt:calendar", "")
+            if calendar != current_calendar():
+                continue
+            direction = direction_label(timetable.get("odpt:busDirection", []))
+            pole = timetable.get("odpt:busstopPole", "").split(".")[-1]
+            route = ", ".join(timetable.get("odpt:busroute", []))
+            note = timetable.get("odpt:note", "")
+            departures = timetable.get("odpt:busstopPoleTimetableObject", [])
+            upcoming = upcoming_departures(departures, now)
+            if pole == "b":
+                dest = "二子玉川"
+                y = 85
+            elif pole == "a":
+                dest = "多摩川"
+                y = 230
+            else:
+                continue
+            tsugi = upcoming[0][1]['odpt:departureTime']
+            tsuginotsugi = upcoming[1][1]['odpt:departureTime']
+            text = f"{dest}\n{tsugi} {tsuginotsugi}"
+            print(text)
+
+            lcd_comm.DisplayText(text, 5, y,
                              font="res/fonts/ZenOldMincho/ZenOldMincho-Medium.ttf",
                              font_size=50,
                              font_color=(255, 255, 255),
@@ -164,7 +203,7 @@ if __name__ == "__main__":
 
         end = time.perf_counter()
         logger.debug(f"refresh done (took {end - start:.3f} s)")
-        sleep(1)
+        sleep(10)
 
     # Close serial connection at exit
     lcd_comm.closeSerial()
