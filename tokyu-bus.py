@@ -180,7 +180,7 @@ if __name__ == "__main__":
             route = ", ".join(timetable.get("odpt:busroute", []))
             note = timetable.get("odpt:note", "")
             departures = timetable.get("odpt:busstopPoleTimetableObject", [])
-            upcoming = upcoming_departures(departures, now)
+            upcoming = upcoming_departures(departures, now, 60 * 12)
             if pole == "b":
                 dest = "二子玉川"
                 y = 85
@@ -189,8 +189,12 @@ if __name__ == "__main__":
                 y = 230
             else:
                 continue
-            tsugi = upcoming[0][1]['odpt:departureTime']
-            tsuginotsugi = upcoming[1][1]['odpt:departureTime']
+            try:
+                tsugi = upcoming[0][1]['odpt:departureTime']
+                tsuginotsugi = upcoming[1][1]['odpt:departureTime']
+            except IndexError:
+                sleep(30)
+                continue
             text = f"{dest}\n{tsugi} {tsuginotsugi}"
             print(text)
 
